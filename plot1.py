@@ -2,46 +2,69 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import json
 from matplotlib.colors import hsv_to_rgb
-from cycler import cycler
 
 def plot_multi_rsi_vs_rs(data, title="RSI vs RS Chart"):
   """
   Plots RSI values on the vertical axis and RS values on the horizontal axis
-  for multiple stocks on separate lines with labels.
+  for multiple stocks on separate lines, using arrows to connect scatter plot points
+  and printing the stock name once per line. All elements for a stock use the same color.
 
   Args:
-      data: A dictionary where keys are stock names (strings) and values are
-             tuples containing RSI and RS values as lists (e.g., {"StockA": (rsi_a, rs_a), ...})
-      title: The title of the chart (optional).
+    data: A dictionary where keys are stock names (strings) and values are
+      tuples containing RSI and RS values as lists (e.g., {"StockA": (rsi_a, rs_a), ...})
+    title: The title of the chart (optional).
   """
 
-  # Set plot limits (0-100 for both axes)
-  plt.xlim(0, 100)
-  plt.ylim(35, 100)
+  # Initialize plot limits with large values
+  min_rs, max_rs = float('inf'), float('-inf')
+  min_rsi, max_rsi = float('inf'), float('-inf')
+
+  # Loop through each stock data to find minimum and maximum values
+  for rs_rsi_json in data.values():
+    rs_values = rs_rsi_json["rs"][-5:]
+    rsi_values = rs_rsi_json["rsi_ema"][-5:]
+    min_rs = min(min_rs, min(rs_values))
+    max_rs = max(max_rs, max(rs_values))
+    min_rsi = min(min_rsi, min(rsi_values))
+    max_rsi = max(max_rsi, max(rsi_values))
+
+  # Set plot limits based on the minimum and maximum values
+  plt.xlim(min_rs - 1, max_rs + 1)
+  plt.ylim(min_rsi - 1, max_rsi + 1)
+  # Set logarithmic scale for x-axis
+  # plt.xscale('log')
+  # plt.yscale('log')
 
   # Loop through each stock data and plot
-  # 1000 distinct colors:
-  colors = [hsv_to_rgb([(i * 0.618033988749895) % 1.0, 1, 1])
-            for i in range(1000)]
-  plt.rc('axes', prop_cycle=(cycler('color', colors)))
+  color_iter = iter(plt.cm.get_cmap('tab20').colors)  # Colormap iterator for multiple stocks
   for stock_name, rs_rsi_json in data.items():
-    # Scatter plot and line for each stock
-    rs_values = rs_rsi_json["rs"]
-    rsi_values = rs_rsi_json["rsi"]
-    plt.scatter(rs_values, rsi_values, marker='o', alpha=0.7, label=stock_name)
-    plt.plot(rs_values, rsi_values, '-b', alpha=0.7, label=stock_name)
+    # Choose a color for the stock
+    color = next(color_iter)
+
+    # Extract data and format for plotting
+    rs_values = rs_rsi_json["rs"][-5:]
+    rsi_values = rs_rsi_json["rsi_ema"][-5:]
+
+    # Scatter plot, arrows, and text (all with the same color)
+    plt.scatter(rs_values, rsi_values, marker='o', alpha=0.7, color=color, label=stock_name)
+    for i in range(len(rs_values) - 1):
+      dx = rs_values[i + 1] - rs_values[i]
+      dy = rsi_values[i + 1] - rsi_values[i]
+      arrow = plt.arrow(rs_values[i], rsi_values[i], dx, dy, head_width=0.3, head_length=0.5, color=color)
+    plt.text(rs_values[0] + 0.5, rsi_values[0] + 0.2, stock_name, ha="center", va="center", fontsize=8, color=color)
 
   # Add labels and title
-  plt.xlabel('RS Value (0-100)')
-  plt.ylabel('RSI Value (1-100)')
+  plt.xlabel('RS Value')
+  plt.ylabel('RSI Value')
   plt.title(title)
 
-  # Add legend
-  plt.legend()
+  # Adjust margins to reduce whitespace
+  plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
 
   # Display the plot
   plt.grid(visible=False)
   plt.show()
+
 
 
 with open("data.json") as fh:

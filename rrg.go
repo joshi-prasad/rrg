@@ -184,30 +184,30 @@ func calculateRRGRating(date []string, tickerMomentum map[string][]float64, tick
 	return rrgRating
 }
 
-func getPerformanceForWeek(weekly_prices []float64, prev_week int) []float64 {
-	skip := len(weekly_prices) - prev_week - 1
-	m3w := skip - 12  // 12 weeks = 3 months before
-	m6w := skip - 25  // 24 weeks = 6 months before
-	m9w := skip - 38  // 36 weeks = 9 months before
-	m12w := skip - 52 // 48 weeks = 12 months before
+// func getPerformanceForWeek(weekly_prices []float64, prev_week int) []float64 {
+// 	skip := len(weekly_prices) - prev_week - 1
+// 	m3w := skip - 12  // 12 weeks = 3 months before
+// 	m6w := skip - 25  // 24 weeks = 6 months before
+// 	m9w := skip - 38  // 36 weeks = 9 months before
+// 	m12w := skip - 52 // 48 weeks = 12 months before
 
-	ppw := weekly_prices[skip]
-	p3m := weekly_prices[m3w]
-	p6m := weekly_prices[m6w]
-	p9m := weekly_prices[m9w]
-	p12m := weekly_prices[m12w]
+// 	ppw := weekly_prices[skip]
+// 	p3m := weekly_prices[m3w]
+// 	p6m := weekly_prices[m6w]
+// 	p9m := weekly_prices[m9w]
+// 	p12m := weekly_prices[m12w]
 
-	gain_3m := (ppw - p3m) / p3m
-	gain_6m := (ppw - p6m) / p6m
-	gain_9m := (ppw - p9m) / p9m
-	gain_12m := (ppw - p12m) / p12m
+// 	gain_3m := (ppw - p3m) / p3m
+// 	gain_6m := (ppw - p6m) / p6m
+// 	gain_9m := (ppw - p9m) / p9m
+// 	gain_12m := (ppw - p12m) / p12m
 
-	// fmt.Println("Index ", len(weekly_prices), skip, m3w, m6w, m9w, m12w)
-	// fmt.Println("Prices ", ppw, p3m, p6m, p9m, p12m)
-	// fmt.Println("Gain ", gain_3m, gain_6m, gain_9m, gain_12m)
+// 	// fmt.Println("Index ", len(weekly_prices), skip, m3w, m6w, m9w, m12w)
+// 	// fmt.Println("Prices ", ppw, p3m, p6m, p9m, p12m)
+// 	// fmt.Println("Gain ", gain_3m, gain_6m, gain_9m, gain_12m)
 
-	return []float64{gain_3m, gain_6m, gain_9m, gain_12m}
-}
+// 	return []float64{gain_3m, gain_6m, gain_9m, gain_12m}
+// }
 
 func percentileRank(values []float64, forValue float64) float64 {
 	// Sort the slice in ascending order
@@ -230,69 +230,40 @@ func percentileRank(values []float64, forValue float64) float64 {
 	return rank
 }
 
-func calculateRsRatingForWeek(
-	ticker_records map[string][]float64,
-	prev_week int) map[string]float64 {
+// func calculateRsRatingForWeek(
+// 	ticker_records map[string][]float64,
+// 	prev_week int) map[string]float64 {
 
-	perf := map[string][]float64{}
-	perf3m := []float64{}
-	perf6m := []float64{}
-	perf9m := []float64{}
-	perf12m := []float64{}
-	for ticker, weekly_prices := range ticker_records {
-		// fmt.Println(weekly_prices)
-		perf_values := getPerformanceForWeek(weekly_prices, prev_week)
-		perf[ticker] = perf_values
-		perf3m = append(perf3m, perf_values[0])
-		perf6m = append(perf6m, perf_values[1])
-		perf9m = append(perf9m, perf_values[2])
-		perf12m = append(perf12m, perf_values[3])
-		// fmt.Println("Perf ", ticker, perf_values)
-	}
+// 	perf := map[string][]float64{}
+// 	perf3m := []float64{}
+// 	perf6m := []float64{}
+// 	perf9m := []float64{}
+// 	perf12m := []float64{}
+// 	for ticker, weekly_prices := range ticker_records {
+// 		// fmt.Println(weekly_prices)
+// 		perf_values := getPerformanceForWeek(weekly_prices, prev_week)
+// 		perf[ticker] = perf_values
+// 		perf3m = append(perf3m, perf_values[0])
+// 		perf6m = append(perf6m, perf_values[1])
+// 		perf9m = append(perf9m, perf_values[2])
+// 		perf12m = append(perf12m, perf_values[3])
+// 		// fmt.Println("Perf ", ticker, perf_values)
+// 	}
 
-	rs_rating := map[string]float64{}
-	for ticker, perf_values := range perf {
-		rank3m := percentileRank(perf3m, perf_values[0])
-		rank6m := percentileRank(perf6m, perf_values[1])
-		rank9m := percentileRank(perf9m, perf_values[2])
-		rank12m := percentileRank(perf12m, perf_values[3])
-		rank := (rank3m * 0.40) + (rank6m * 0.20) + (rank9m * 0.20) + (rank12m * 0.20)
-		rs_rating[ticker] = rank
-	}
-	return rs_rating
-}
+// 	rs_rating := map[string]float64{}
+// 	for ticker, perf_values := range perf {
+// 		rank3m := percentileRank(perf3m, perf_values[0])
+// 		rank6m := percentileRank(perf6m, perf_values[1])
+// 		rank9m := percentileRank(perf9m, perf_values[2])
+// 		rank12m := percentileRank(perf12m, perf_values[3])
+// 		rank := (rank3m * 0.40) + (rank6m * 0.20) + (rank9m * 0.20) + (rank12m * 0.20)
+// 		rs_rating[ticker] = rank
+// 	}
+// 	return rs_rating
+// }
 
 // computeRSI calculates the Relative Strength Index (RSI) for a given set of values and window size.
 func computeRSI(values []float64, window int) (float64, error) {
-	// if len(values) < window {
-	// 	return 0, errors.New("insufficient data to calculate RSI")
-	// }
-
-	// // Initialize variables
-	// gainSum := 0.0
-	// lossSum := 0.0
-
-	// // Calculate average gain and loss
-	// for i := 1; i <= window; i++ {
-	// 	diff := values[i] - values[i-1]
-	// 	if diff >= 0 {
-	// 		gainSum += diff
-	// 	} else {
-	// 		lossSum -= diff // Take absolute value for loss
-	// 	}
-	// }
-
-	// avgGain := gainSum / float64(window)
-	// avgLoss := lossSum / float64(window)
-
-	// // Calculate RSI
-	// if avgLoss == 0 {
-	// 	return 100, nil
-	// }
-
-	// rs := avgGain / avgLoss
-	// rsi := 100 - (100 / (1 + rs))
-	// return rsi, nil
 	var avgGain, avgLoss float64
 	for i := 1; i < (len(values) - window); i += 1 {
 		diff := values[i] - values[i-1]
@@ -368,6 +339,121 @@ func writeToFile(data map[string]map[string][]float64, fileName string) error {
 	return nil
 }
 
+func computeRsi(prices []float64, window int) []float64 {
+	fmt.Println(prices)
+	var avgGain, avgLoss float64
+	for i := 1; i < window; i += 1 {
+		diff := prices[i] - prices[i-1]
+		if diff >= 0 {
+			avgGain += diff
+		} else {
+			avgLoss -= diff
+		}
+	}
+
+	allRsi := []float64{}
+
+	wf := float64(window)
+	avgGain = avgGain / wf
+	avgLoss = avgLoss / wf
+	fmt.Println("Initial ", avgGain, avgLoss)
+	for i := window; i < len(prices); i += 1 {
+		diff := prices[i] - prices[i-1]
+		if diff >= 0 {
+			avgGain = ((avgGain * (wf - 1)) + diff) / wf
+		} else {
+			avgLoss = ((avgLoss * (wf - 1)) - diff) / wf
+		}
+		rs := avgGain / (avgLoss + 1e-14) // Avoid division by zero
+		rsi := 100 - (100 / (1 + rs))
+		fmt.Println(prices[i], diff, avgGain, avgLoss, rs, rsi)
+		allRsi = append(allRsi, rsi)
+	}
+	return allRsi
+}
+
+func computeEma(values []float64, emaLength int) []float64 {
+	if emaLength <= 0 {
+		return nil // Handle invalid window size
+	}
+
+	ema := make([]float64, len(values)) // Initialize slice to store EMA values
+	for i := range ema {
+		if i == 0 {
+			ema[i] = values[i] // First element is the initial value
+		} else {
+			// Calculate EMA using smoothing factor
+			smoothingFactor := 2.0 / (float64(emaLength) + 1.0)
+			ema[i] = smoothingFactor*values[i] + (1.0-smoothingFactor)*ema[i-1]
+		}
+	}
+	return ema
+}
+
+func getPerformanceForWeek(
+	ticker_records map[string][]float64,
+	week int,
+	months int) map[string]float64 {
+
+	perf := map[string]float64{}
+	prev_week := week - (months * 4)
+	for ticker, weekly_prices := range ticker_records {
+		cur_price := weekly_prices[week]
+		prev_price := weekly_prices[prev_week]
+
+		gain := (cur_price - prev_price) / prev_price
+		perf[ticker] = gain
+	}
+	return perf
+}
+
+func compteRsRating(
+	perf_for_all_tickers map[string]float64) map[string]float64 {
+
+	arr := []float64{}
+	for _, perf := range perf_for_all_tickers {
+		arr = append(arr, perf)
+	}
+
+	result := map[string]float64{}
+	for ticker, perf := range perf_for_all_tickers {
+		result[ticker] = percentileRank(arr, perf)
+	}
+	return result
+}
+
+func computeRsRating(
+	ticker_records map[string][]float64,
+	values_per_record int) map[string][]float64 {
+
+	rs_ratings := map[string][]float64{}
+
+	skip := 52 // weeks in an year
+	for i := skip; i < values_per_record; i += 1 {
+		ticker_3m_rs := compteRsRating(
+			getPerformanceForWeek(ticker_records, i, 3))
+		ticker_6m_rs := compteRsRating(
+			getPerformanceForWeek(ticker_records, i, 6))
+		ticker_9m_rs := compteRsRating(
+			getPerformanceForWeek(ticker_records, i, 9))
+		ticker_12m_rs := compteRsRating(
+			getPerformanceForWeek(ticker_records, i, 12))
+
+		for ticker, _ := range ticker_records {
+			rs3m := ticker_3m_rs[ticker]
+			rs6m := ticker_6m_rs[ticker]
+			rs9m := ticker_9m_rs[ticker]
+			rs12m := ticker_12m_rs[ticker]
+			rank := (rs3m * 0.40) + (rs6m * 0.20) + (rs9m * 0.20) + (rs12m * 0.20)
+			if _, ok := rs_ratings[ticker]; !ok {
+				rs_ratings[ticker] = []float64{}
+			}
+			rs_ratings[ticker] = append(rs_ratings[ticker], rank)
+		}
+	}
+	return rs_ratings
+}
+
 func main() {
 	records, err := ReadCsv()
 	if err != nil {
@@ -385,28 +471,21 @@ func main() {
 	fmt.Println(len(dates))
 	fmt.Println(len(ticker_records))
 
-	tail_length := 6
-	rs_ratings := map[string][]float64{}
 	rsi_ratings := map[string][]float64{}
+	rsi_ema := map[string][]float64{}
 
-	for i := tail_length; i >= 0; i -= 1 {
-		rs_rating_for_week := calculateRsRatingForWeek(ticker_records, i)
-		for ticker, rating := range rs_rating_for_week {
-			if _, ok := rs_ratings[ticker]; !ok {
-				rs_ratings[ticker] = []float64{}
-			}
-			rs_ratings[ticker] = append(rs_ratings[ticker], rating)
-		}
-
-		rsi_rating_for_week := calculateRSIRatingForWeek(ticker_records, i, 10)
-		for tickker, rating := range rsi_rating_for_week {
-			if _, ok := rsi_ratings[tickker]; !ok {
-				rsi_ratings[tickker] = []float64{}
-			}
-			rsi_ratings[tickker] = append(rsi_ratings[tickker], rating)
-		}
+	for ticker, weekly_prices := range ticker_records {
+		// if ticker != "INDEXNSE:NIFTY_FMCG" {
+		// 	continue
+		// }
+		rsi := computeRsi(weekly_prices, 10)
+		ema := computeEma(rsi, 10)
+		rsi_ratings[ticker] = rsi
+		rsi_ema[ticker] = ema
 	}
 
+	rs_ratings := computeRsRating(ticker_records, len(dates))
+	// fmt.Println(rs_ratings)
 	data := map[string]map[string][]float64{}
 	for ticker, rating := range rs_ratings {
 		data[ticker] = map[string][]float64{}
@@ -415,7 +494,10 @@ func main() {
 	for ticker, rating := range rsi_ratings {
 		data[ticker]["rsi"] = rating
 	}
-
+	for ticker, rating := range rsi_ema {
+		data[ticker]["rsi_ema"] = rating
+	}
+	// fmt.Println(data)
 	err = writeToFile(data, "data.json")
 	if err != nil {
 		fmt.Println("writing to file failed ", err)
