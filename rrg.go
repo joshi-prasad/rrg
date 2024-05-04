@@ -230,89 +230,6 @@ func percentileRank(values []float64, forValue float64) float64 {
 	return rank
 }
 
-// func calculateRsRatingForWeek(
-// 	ticker_records map[string][]float64,
-// 	prev_week int) map[string]float64 {
-
-// 	perf := map[string][]float64{}
-// 	perf3m := []float64{}
-// 	perf6m := []float64{}
-// 	perf9m := []float64{}
-// 	perf12m := []float64{}
-// 	for ticker, weekly_prices := range ticker_records {
-// 		// fmt.Println(weekly_prices)
-// 		perf_values := getPerformanceForWeek(weekly_prices, prev_week)
-// 		perf[ticker] = perf_values
-// 		perf3m = append(perf3m, perf_values[0])
-// 		perf6m = append(perf6m, perf_values[1])
-// 		perf9m = append(perf9m, perf_values[2])
-// 		perf12m = append(perf12m, perf_values[3])
-// 		// fmt.Println("Perf ", ticker, perf_values)
-// 	}
-
-// 	rs_rating := map[string]float64{}
-// 	for ticker, perf_values := range perf {
-// 		rank3m := percentileRank(perf3m, perf_values[0])
-// 		rank6m := percentileRank(perf6m, perf_values[1])
-// 		rank9m := percentileRank(perf9m, perf_values[2])
-// 		rank12m := percentileRank(perf12m, perf_values[3])
-// 		rank := (rank3m * 0.40) + (rank6m * 0.20) + (rank9m * 0.20) + (rank12m * 0.20)
-// 		rs_rating[ticker] = rank
-// 	}
-// 	return rs_rating
-// }
-
-// computeRSI calculates the Relative Strength Index (RSI) for a given set of values and window size.
-func computeRSI(values []float64, window int) (float64, error) {
-	var avgGain, avgLoss float64
-	for i := 1; i < (len(values) - window); i += 1 {
-		diff := values[i] - values[i-1]
-		if diff >= 0 {
-			avgGain += diff
-		} else {
-			avgLoss -= diff
-		}
-		// fmt.Println(i, i-1)
-	}
-
-	wf := float64(window)
-	avgGain = avgGain / wf
-	avgLoss = avgLoss / wf
-
-	for i := len(values) - window; i < len(values); i += 1 {
-		// fmt.Println("Inside ", i, i-1)
-
-		diff := values[i] - values[i-1]
-		if diff >= 0 {
-			avgGain = ((avgGain * (wf - 1)) + diff) / wf
-		} else {
-			avgLoss = ((avgLoss * (wf - 1)) - diff) / wf
-		}
-	}
-	rs := avgGain / (avgLoss + 1e-14) // Avoid division by zero
-	rsi := 100 - (100 / (1 + rs))
-	return rsi, nil
-}
-
-func calculateRSIRatingForWeek(
-	ticker_records map[string][]float64,
-	prev_week int,
-	rsi_window int) map[string]float64 {
-
-	rsi := map[string]float64{}
-	for ticker, weekly_prices := range ticker_records {
-		// if ticker != "INDEXNSE:NIFTY_ENERGY" {
-		// 	continue
-		// }
-		start := len(weekly_prices) - prev_week - 1 - (rsi_window * 2)
-		end := start + (rsi_window * 2) + 1
-		slice := weekly_prices[start:end]
-		rsi_for_ticker, _ := computeRSI(slice, rsi_window)
-		rsi[ticker] = rsi_for_ticker
-	}
-	return rsi
-}
-
 func writeToFile(data map[string]map[string][]float64, fileName string) error {
 	// Convert data to JSON
 	jsonData, err := json.Marshal(data)
@@ -339,37 +256,22 @@ func writeToFile(data map[string]map[string][]float64, fileName string) error {
 	return nil
 }
 
-func computeRsi(prices []float64, window int) []float64 {
-	fmt.Println(prices)
-	var avgGain, avgLoss float64
-	for i := 1; i < window; i += 1 {
-		diff := prices[i] - prices[i-1]
-		if diff >= 0 {
-			avgGain += diff
-		} else {
-			avgLoss -= diff
-		}
+// computeRsi calculates the Relative Strength Index (RSI) for a given set of values and window size.
+func computeRsi(values []float64, window int) []float64 {
+	rsiAnalyzer := NewRSIAnalyzer(window)
+	for i := 0; i < window; i += 1 {
+		rsiAnalyzer.PushValue(values[i])
 	}
-
-	allRsi := []float64{}
-
-	wf := float64(window)
-	avgGain = avgGain / wf
-	avgLoss = avgLoss / wf
-	fmt.Println("Initial ", avgGain, avgLoss)
-	for i := window; i < len(prices); i += 1 {
-		diff := prices[i] - prices[i-1]
-		if diff >= 0 {
-			avgGain = ((avgGain * (wf - 1)) + diff) / wf
-		} else {
-			avgLoss = ((avgLoss * (wf - 1)) - diff) / wf
-		}
-		rs := avgGain / (avgLoss + 1e-14) // Avoid division by zero
+	allRSI := []float64{}
+	for i := window; i < len(values); i += 1 {
+		rsiAnalyzer.PushValue(values[i])
+		gains := rsiAnalyzer.SumGains()
+		losses := rsiAnalyzer.SumLosses() + 1e-14 // Avoid division by zero
+		rs := gains / losses
 		rsi := 100 - (100 / (1 + rs))
-		fmt.Println(prices[i], diff, avgGain, avgLoss, rs, rsi)
-		allRsi = append(allRsi, rsi)
+		allRSI = append(allRSI, rsi)
 	}
-	return allRsi
+	return allRSI
 }
 
 func computeEma(values []float64, emaLength int) []float64 {
